@@ -1,0 +1,43 @@
+version: '3.7'
+services:
+
+  #Converter Service
+  converter-api:
+    build:
+      args:
+        user: www
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: converter-api/php
+    container_name: converter-api
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: converter-api
+      SERVICE_TAGS: dev
+    working_dir: /var/www/converter-api
+    volumes:
+      - ./php:/usr/local/etc/php/conf.d/
+      - ./:/var/www/converter-api
+    networks:
+      - app-network
+
+  #Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: converter-server
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "81:81" # Converter-API
+    volumes:
+      - ./:/var/www/converter-api
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
